@@ -361,7 +361,7 @@ export default function Home() {
                         Rate
                       </th>
                       <th className="py-3 sm:py-4 px-2 sm:px-3 text-left font-semibold text-gray-600 text-xs sm:text-sm">
-                        You'll Receive
+                      You&apos;ll Receive
                       </th>
                       <th className="py-3 sm:py-4 px-2 sm:px-3 text-left font-semibold text-gray-600 text-xs sm:text-sm">
                         Fee
