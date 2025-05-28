@@ -13,23 +13,239 @@ import {
   ArrowLeftRight,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import HeroSection from "@/components/Home/HeroSection"
-import Header from "@/components/header.js"
-import CurrencySelector from "@/components/home/CurrencySelector"
-import CurrencyFlag from "@/components/currency-flags"
-import providerData from "@/data/provider-data"
-import { sourceCurrencies, destinationCurrencies } from "@/data/currencies"
-import { parseFee, parseRate, formatCurrency } from "@/utils/currency"
+// Currency data
+const sourceCurrencies = [
+  { code: "USD", name: "US Dollar", flag: "us-flag" },
+  { code: "EUR", name: "Euro", flag: "eu-flag" },
+  { code: "GBP", name: "British Pound", flag: "gb-flag" },
+  { code: "CAD", name: "Canadian Dollar", flag: "ca-flag" },
+]
 
+const destinationCurrencies = [
+  { code: "NGN", name: "Nigerian Naira", flag: "ng-flag" },
+  { code: "GHS", name: "Ghanaian Cedi", flag: "gh-flag" },
+  { code: "XOF", name: "West African CFA", flag: "cfa-flag" },
+  { code: "KES", name: "Kenyan Shilling", flag: "ke-flag" },
+]
+
+// Provider data for different currency pairs
+const providerData = {
+  USD: {
+    NGN: [
+      { name: "PayPal", rate: "466.24", fee: "$2.99", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "466.10", fee: "$2.50", time: "Instant", color: "cyan" },
+      { name: "Chipper", rate: "471.37", fee: "No fee", time: "Instant", color: "blue", best: true },
+    ],
+    GHS: [
+      { name: "PayPal", rate: "13.25", fee: "$3.99", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "13.42", fee: "$2.75", time: "Instant", color: "cyan", best: true },
+      { name: "WorldRemit", rate: "13.10", fee: "$1.99", time: "Same day", color: "indigo" },
+    ],
+    XOF: [
+      { name: "Western Union", rate: "602.45", fee: "$3.50", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "604.20", fee: "$2.99", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "605.75", fee: "$1.50", time: "Instant", color: "blue", best: true },
+    ],
+    KES: [
+      { name: "PayPal", rate: "129.85", fee: "$3.99", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "130.42", fee: "$2.50", time: "Instant", color: "cyan", best: true },
+      { name: "Sendwave", rate: "128.95", fee: "$1.99", time: "Instant", color: "purple" },
+    ],
+  },
+  EUR: {
+    NGN: [
+      { name: "PayPal", rate: "505.32", fee: "€2.99", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "507.45", fee: "€2.40", time: "Instant", color: "cyan", best: true },
+      { name: "Chipper", rate: "503.18", fee: "€1.00", time: "Instant", color: "blue" },
+    ],
+    GHS: [
+      { name: "PayPal", rate: "14.35", fee: "€3.50", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "14.52", fee: "€2.60", time: "Instant", color: "cyan", best: true },
+      { name: "WorldRemit", rate: "14.20", fee: "€1.99", time: "Same day", color: "indigo" },
+    ],
+    XOF: [
+      { name: "Western Union", rate: "655.95", fee: "€3.00", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "655.96", fee: "€2.80", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "655.97", fee: "€1.20", time: "Instant", color: "blue", best: true },
+    ],
+    KES: [
+      { name: "PayPal", rate: "140.75", fee: "€3.50", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "141.30", fee: "€2.40", time: "Instant", color: "cyan", best: true },
+      { name: "Sendwave", rate: "139.85", fee: "€1.80", time: "Instant", color: "purple" },
+    ],
+  },
+  GBP: {
+    NGN: [
+      { name: "PayPal", rate: "592.45", fee: "£2.50", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "594.30", fee: "£2.00", time: "Instant", color: "cyan" },
+      { name: "Chipper", rate: "595.12", fee: "£0.80", time: "Instant", color: "blue", best: true },
+    ],
+    GHS: [
+      { name: "PayPal", rate: "16.85", fee: "£3.00", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "17.02", fee: "£2.20", time: "Instant", color: "cyan", best: true },
+      { name: "WorldRemit", rate: "16.70", fee: "£1.50", time: "Same day", color: "indigo" },
+    ],
+    XOF: [
+      { name: "Western Union", rate: "768.35", fee: "£2.80", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "769.20", fee: "£2.50", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "770.15", fee: "£1.00", time: "Instant", color: "blue", best: true },
+    ],
+    KES: [
+      { name: "PayPal", rate: "165.25", fee: "£3.00", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "166.40", fee: "£2.20", time: "Instant", color: "cyan", best: true },
+      { name: "Sendwave", rate: "164.75", fee: "£1.60", time: "Instant", color: "purple" },
+    ],
+  },
+  CAD: {
+    NGN: [
+      { name: "PayPal", rate: "342.15", fee: "C$3.50", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "343.25", fee: "C$2.80", time: "Instant", color: "cyan", best: true },
+      { name: "Chipper", rate: "341.50", fee: "C$1.20", time: "Instant", color: "blue" },
+    ],
+    GHS: [
+      { name: "PayPal", rate: "9.75", fee: "C$3.80", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "9.92", fee: "C$2.90", time: "Instant", color: "cyan", best: true },
+      { name: "WorldRemit", rate: "9.65", fee: "C$2.10", time: "Same day", color: "indigo" },
+    ],
+    XOF: [
+      { name: "Western Union", rate: "445.30", fee: "C$3.20", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "446.15", fee: "C$2.90", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "447.25", fee: "C$1.40", time: "Instant", color: "blue", best: true },
+    ],
+    KES: [
+      { name: "PayPal", rate: "95.65", fee: "C$3.70", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "96.30", fee: "C$2.80", time: "Instant", color: "cyan", best: true },
+      { name: "Sendwave", rate: "95.10", fee: "C$2.00", time: "Instant", color: "purple" },
+    ],
+  },
+  NGN: {
+    USD: [
+      { name: "PayPal", rate: "0.00214", fee: "₦1,500", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00215", fee: "₦1,200", time: "Instant", color: "cyan", best: true },
+      { name: "Chipper", rate: "0.00212", fee: "No fee", time: "Instant", color: "blue" },
+    ],
+    EUR: [
+      { name: "PayPal", rate: "0.00198", fee: "₦1,500", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00197", fee: "₦1,200", time: "Instant", color: "cyan", best: true },
+      { name: "Chipper", rate: "0.00199", fee: "₦500", time: "Instant", color: "blue" },
+    ],
+    GBP: [
+      { name: "PayPal", rate: "0.00169", fee: "₦1,250", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00168", fee: "₦1,000", time: "Instant", color: "cyan" },
+      { name: "Chipper", rate: "0.00168", fee: "₦400", time: "Instant", color: "blue", best: true },
+    ],
+    CAD: [
+      { name: "PayPal", rate: "0.00292", fee: "₦1,750", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00291", fee: "₦1,400", time: "Instant", color: "cyan", best: true },
+      { name: "Chipper", rate: "0.00293", fee: "₦600", time: "Instant", color: "blue" },
+    ],
+  },
+  GHS: {
+    USD: [
+      { name: "PayPal", rate: "0.0755", fee: "₵25", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.0745", fee: "₵20", time: "Instant", color: "cyan" },
+      { name: "WorldRemit", rate: "0.0763", fee: "₵15", time: "Same day", color: "indigo", best: true },
+    ],
+    EUR: [
+      { name: "PayPal", rate: "0.0697", fee: "₵25", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.0689", fee: "₵20", time: "Instant", color: "cyan" },
+      { name: "WorldRemit", rate: "0.0704", fee: "₵15", time: "Same day", color: "indigo", best: true },
+    ],
+    GBP: [
+      { name: "PayPal", rate: "0.0593", fee: "₵22", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.0587", fee: "₵18", time: "Instant", color: "cyan" },
+      { name: "WorldRemit", rate: "0.0599", fee: "₵12", time: "Same day", color: "indigo", best: true },
+    ],
+    CAD: [
+      { name: "PayPal", rate: "0.1026", fee: "₵28", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.1008", fee: "₵22", time: "Instant", color: "cyan" },
+      { name: "WorldRemit", rate: "0.1037", fee: "₵16", time: "Same day", color: "indigo", best: true },
+    ],
+  },
+  XOF: {
+    USD: [
+      { name: "Western Union", rate: "0.00166", fee: "CFA2,100", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "0.00165", fee: "CFA1,800", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "0.00165", fee: "CFA900", time: "Instant", color: "blue", best: true },
+    ],
+    EUR: [
+      { name: "Western Union", rate: "0.00152", fee: "CFA2,000", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "0.00152", fee: "CFA1,700", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "0.00152", fee: "CFA800", time: "Instant", color: "blue", best: true },
+    ],
+    GBP: [
+      { name: "Western Union", rate: "0.00130", fee: "CFA1,800", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "0.00130", fee: "CFA1,500", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "0.00130", fee: "CFA700", time: "Instant", color: "blue", best: true },
+    ],
+    CAD: [
+      { name: "Western Union", rate: "0.00224", fee: "CFA2,200", time: "Same day", color: "yellow" },
+      { name: "MoneyGram", rate: "0.00224", fee: "CFA1,900", time: "1-2 hours", color: "red" },
+      { name: "Wave", rate: "0.00224", fee: "CFA1,000", time: "Instant", color: "blue", best: true },
+    ],
+  },
+  KES: {
+    USD: [
+      { name: "PayPal", rate: "0.00770", fee: "KSh520", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00767", fee: "KSh400", time: "Instant", color: "cyan" },
+      { name: "Sendwave", rate: "0.00775", fee: "KSh320", time: "Instant", color: "purple", best: true },
+    ],
+    EUR: [
+      { name: "PayPal", rate: "0.00710", fee: "KSh520", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00708", fee: "KSh400", time: "Instant", color: "cyan" },
+      { name: "Sendwave", rate: "0.00715", fee: "KSh320", time: "Instant", color: "purple", best: true },
+    ],
+    GBP: [
+      { name: "PayPal", rate: "0.00605", fee: "KSh480", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.00601", fee: "KSh350", time: "Instant", color: "cyan" },
+      { name: "Sendwave", rate: "0.00607", fee: "KSh280", time: "Instant", color: "purple", best: true },
+    ],
+    CAD: [
+      { name: "PayPal", rate: "0.01045", fee: "KSh580", time: "1-3 hours", color: "blue" },
+      { name: "Wise", rate: "0.01038", fee: "KSh450", time: "Instant", color: "cyan" },
+      { name: "Sendwave", rate: "0.01052", fee: "KSh380", time: "Instant", color: "purple", best: true },
+    ],
+  },
+}
+
+// Helper function to parse fee string to number
+const parseFee = (feeStr) => {
+  if (feeStr === "No fee") return 0
+  return Number.parseFloat(feeStr.replace(/[^0-9.]/g, ""))
+}
+
+// Helper function to parse rate string to number
+const parseRate = (rateStr) => {
+  return Number.parseFloat(rateStr.replace(/,/g, ""))
+}
+
+// Helper function to format currency
+const formatCurrency = (amount, currencyCode) => {
+  const symbols = {
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    CAD: "C$",
+    NGN: "₦",
+    GHS: "₵",
+    XOF: "CFA",
+    KES: "KSh",
+  }
+
+  return `${symbols[currencyCode] || ""}${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
+}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("NGN")
   const [isReversed, setIsReversed] = useState(false)
   const [sourceCurrency, setSourceCurrency] = useState(sourceCurrencies[0])
-  const [amount, setAmount] = useState(1)
+  const [amount, setAmount] = useState(1000)
   const [calculatedAmounts, setCalculatedAmounts] = useState({})
 
   // Reset direction when tab changes
@@ -127,18 +343,70 @@ export default function Home() {
 
       <div className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
-        <Header/>
+        <header className="flex justify-between items-center mb-10 sm:mb-16">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-teal-400 rounded-xl p-1.5 sm:p-2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-md shadow-blue-200">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4 sm:w-5 sm:h-5"
+              >
+                <path d="M22 2L11 13" />
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+              </svg>
+            </div>
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+              SendMarket
+            </span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+              Fintechs
+            </a>
+            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+              Rates
+            </a>
+            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+              Support
+            </a>
+          </div>
+
+          <button className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 transition-colors md:border md:border-gray-200 md:rounded-full md:hover:border-blue-200 md:hover:bg-blue-50">
+            <Menu className="w-5 h-5" />
+          </button>
+        </header>
 
         {/* Main Content */}
         <main className="max-w-3xl mx-auto">
-          
-          <HeroSection/>
+        <HeroSection/>
           {/* Destination Currency Selection */}
-         <CurrencySelector
-  activeTab={activeTab}
-  setActiveTab={setActiveTab}
-  destinationCurrencies={destinationCurrencies}
-/>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md p-4 sm:p-6 border border-gray-100 mb-6 sm:mb-10">
+            <div className="mb-2 sm:mb-3">
+              <p className="font-medium text-gray-700 text-sm sm:text-base">Send To</p>
+            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-4 bg-gray-100 p-1 rounded-xl">
+                {destinationCurrencies.map((currency) => (
+                  <TabsTrigger
+                    key={currency.code}
+                    value={currency.code}
+                    className="rounded-lg text-xs sm:text-sm text-gray-600 transition-all hover:bg-gray-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <CurrencyFlag currency={currency.code} small />
+                      <span>{currency.code}</span>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
 
           {/* Exchange Rates Table */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md p-4 sm:p-6 border border-gray-100 mb-6 sm:mb-10">
@@ -449,7 +717,108 @@ export default function Home() {
 }
 
 // Helper component for currency flags
+function CurrencyFlag({ currency, small }) {
+  const size = small ? "w-4 h-3 sm:w-5 sm:h-4" : "w-6 h-5 sm:w-8 sm:h-6"
 
+  switch (currency) {
+    case "USD":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full bg-gradient-to-b from-blue-700 via-white to-red-600 flex flex-col">
+            <div className="h-1/3 bg-blue-700"></div>
+            <div className="h-1/3 bg-white"></div>
+            <div className="h-1/3 bg-red-600"></div>
+          </div>
+        </div>
+      )
+    case "EUR":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full bg-blue-600 flex items-center justify-center">
+            <div className="flex flex-wrap w-3/4 h-3/4 justify-center">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="w-1/4 h-1/3 flex items-center justify-center">
+                  <div className="w-2/3 h-2/3 bg-yellow-400 transform rotate-45"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    case "GBP":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full bg-blue-600 relative">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-1/5 bg-white"></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-1/5 h-full bg-white"></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-2/5 bg-red-600 transform rotate-45 scale-50"></div>
+            </div>
+          </div>
+        </div>
+      )
+    case "CAD":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full flex">
+            <div className="w-1/4 bg-red-600"></div>
+            <div className="w-2/4 bg-white flex items-center justify-center">
+              <div className="w-3/4 h-3/4 text-red-600">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L9.5 9 2 9.5 7 14 5.5 22 12 18 18.5 22 17 14 22 9.5 14.5 9z" />
+                </svg>
+              </div>
+            </div>
+            <div className="w-1/4 bg-red-600"></div>
+          </div>
+        </div>
+      )
+    case "NGN":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full flex">
+            <div className="w-1/3 bg-green-600"></div>
+            <div className="w-1/3 bg-white"></div>
+            <div className="w-1/3 bg-green-600"></div>
+          </div>
+        </div>
+      )
+    case "GHS":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm`}>
+          <div className="h-full flex flex-col">
+            <div className="h-1/3 bg-red-600"></div>
+            <div className="h-1/3 bg-yellow-400"></div>
+            <div className="h-1/3 bg-green-600"></div>
+          </div>
+        </div>
+      )
+    case "XOF":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm bg-green-600`}>
+          <div className="h-full flex justify-center items-center">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+          </div>
+        </div>
+      )
+    case "KES":
+      return (
+        <div className={`${size} rounded-md overflow-hidden shadow-sm bg-black`}>
+          <div className="h-full flex flex-col">
+            <div className="h-1/3 bg-black"></div>
+            <div className="h-1/3 bg-red-600"></div>
+            <div className="h-1/3 bg-green-600"></div>
+          </div>
+        </div>
+      )
+    default:
+      return <div className={`${size} rounded-md bg-gray-200`}></div>
+  }
+}
 
 function getProviderColor(color) {
   switch (color) {
